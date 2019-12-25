@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>ChatRoom</title>
+  </head>
+  <body>
+    <div>
+      <textarea id="chat-log" rows="20" style="width: 100%;" disabled></textarea>
+      <form id="message-form">
+        <span>
+          <input
+            id="chat-username-input"
+            type="text"
+            style="width:15%;display: inline;"
+          />
+          <input
+            id="chat-message-input"
+            type="text"
+            style="width:65%;display: inline;"
+          />
+          <button
+            id="chat-message-submit"
+            style="width:13%;display: inline;"
+            type="submit"
+          >
+            메세지 전달
+          </button>
+        </span>
+      </form>
+    </div>
+  </body>
+  <script>
+    const roomName = {{room_name_json}};
+    const chatSocket = new WebSocket(
+        `ws://${window.location.host}/ws/chat/${roomName}/`
+    )
+    chatSocket.onmessage = event =>{
+        const data=JSON.parse(event.data)
+        const message= data['userName']+ ": "+data['message']
+        document.querySelector('#chat-log').value +=(message +"\n")
+    }
+    chatSocket.onclose = event =>{
+        console.error('Chat socket closed unexpectedly')
+    }
+    document.querySelector('#chat-message-input').focus()
+    document.querySelector('#message-form').addEventListener('submit', e=>{
+        e.preventDefault()
+
+        const message = document.querySelector('#chat-message-input').value
+        const userName = document.querySelector('#chat-username-input').value
+        if (message && userName){
+        chatSocket.send(JSON.stringify({'userName':userName,'message':message}))
+        document.querySelector('#chat-message-input').value = ''
+      }
+    })
+  </script>
+</html>
